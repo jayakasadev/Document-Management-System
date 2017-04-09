@@ -1,10 +1,9 @@
 package kasa.dev.model;
 
 import lombok.Data;
+import lombok.ToString;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
@@ -13,11 +12,13 @@ import java.time.LocalDateTime;
  */
 @Data // lombok
 @Entity
+@ToString
 public class Upload {
     @Id
     @GeneratedValue
     private Long fileId;
 
+    @Column(unique = true)
     private String filename;
     private String owner;
     private String extension;

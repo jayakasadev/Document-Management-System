@@ -38,4 +38,5 @@ public interface UploadRepository extends CrudRepository<Upload, Long> {
      */
     Collection<Upload> findByDateUploadedAfter(Timestamp timestamp);
 
+    Collection<Upload> findAll();
 }
