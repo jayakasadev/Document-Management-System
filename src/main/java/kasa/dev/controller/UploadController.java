@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -89,7 +91,7 @@ public class UploadController {
      */
     @RequestMapping(value = "/details/{id}", method = GET, produces = "application/json")
     public Optional<Upload> findByID(@PathVariable(value = "id") long id){
-        log.info("findByID " + repository != null);
+        log.info("findByID " + id);
         return repository.findByFileId(id);
     }
 
@@ -101,7 +103,47 @@ public class UploadController {
      */
     @RequestMapping(value = "/details/{filename:.*}", method = GET, produces = "application/json")
     public Optional<Upload> findByFilename(@PathVariable(value = "filename") String filename){
-        log.info("findByFilename " + repository != null);
+        log.info("findByFilename " + filename);
         return repository.findByFilename(filename);
+    }
+
+    /**
+     * Method for getting all files uploaded in the last hour
+     *
+     * @return Collection containing Upload objects
+     */
+    @RequestMapping(value = "/lasthour", method = GET, produces = "application/json")
+    public Collection<Upload> uploadedLastHour(){
+        log.info("uploadedLastHour now: " + LocalDateTime.now() + " hour ago: " + LocalDateTime.now().minusHours(1));
+        return repository.findByDateUploadedAfter(Timestamp.valueOf(LocalDateTime.now().minusHours(1)));
+    }
+
+    // TODO fix the 2 methods below to return file streams
+    /**
+     * Method for getting file stream by fileid
+     *
+     * @param id
+     * @return InputStream if file exists
+     */
+    @RequestMapping(value = "/stream/{id}", method = GET)
+    public Optional<Upload> streamByID(@PathVariable(value = "id") long id){
+        log.info("streamByID " + id);
+        Upload out = repository.findByFileId(id).get();
+        if(out != null){
+            out.getFilename();
+        }
+        return null;
+    }
+
+    /**
+     * Method for getting file stream by fileid
+     *
+     * @param filename
+     * @return InputStream if file exists
+     */
+    @RequestMapping(value = "/stream/{filename:.*}", method = GET, produces = "application/json")
+    public Optional<Upload> streamByFilename(@PathVariable(value = "filename") String filename){
+        log.info("streamByFilename " + filename);
+        return null;
     }
 }
