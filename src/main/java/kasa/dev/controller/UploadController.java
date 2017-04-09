@@ -19,8 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Optional;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -105,24 +103,18 @@ public class UploadController {
      * @return Upload object if it exists
      */
     @RequestMapping(value = "/details/{id}", method = GET)
-    public Resource<Upload> findByID(@PathVariable(value = "id") long id){
+    public Resource<?> findByID(@PathVariable(value = "id") long id){
         log.info("findByID " + id);
-        Upload out = repository.findByFileId(id);
+        Upload out = repository.findByFileId(id).orElse(null);
+        if (out == null) return new Resource<>(HttpStatus.NOT_FOUND);
         return new Resource<>(out);
     }
 
-    /**
-     * Method for searching for file information by filename.
-     *
-     * @param filename
-     * @return Upload object if it exists
-     */
-    @RequestMapping(value = "/details/filename/{filename:.*}", method = GET)
-    public Resource<Upload> findByFilename(@PathVariable(value = "filename") String filename){
-        log.info("findByFilename " + filename);
-        // log.info(out.toString());
-        Upload out = repository.findByFilename(filename);
-        log.info(out.toString());
+    @RequestMapping(value = "/details/filename/{filename}/", method = GET)
+    public Resource<?> findByFilename(@PathVariable(value = "filename") String filename){
+        log.info("findByFilename: " + filename);
+        Upload out = repository.findByFilename(filename).orElse(null);
+        if(out == null) return new Resource<>(HttpStatus.NOT_FOUND);
         return new Resource<>(out);
     }
 
@@ -146,7 +138,7 @@ public class UploadController {
     @RequestMapping(value = "/stream/id/{id}", method = GET)
     public Resource<?> streamByID(@PathVariable(value = "id") long id){
         log.info("streamByID " + id);
-        Upload out = repository.findByFileId(id);
+        Upload out = repository.findByFileId(id).get();
 
         if(out == null){
             return new Resource<>(HttpStatus.NOT_FOUND);
@@ -165,7 +157,7 @@ public class UploadController {
     @RequestMapping(value = "/stream/filename/{filename:.*}", method = GET)
     public Resource<?> streamByFilename(@PathVariable(value = "filename") String filename){
         log.info("streamByFilename " + filename);
-        Upload out = repository.findByFilename(filename);
+        Upload out = repository.findByFilename(filename).get();
 
         if(out == null){
             return new Resource<>(HttpStatus.NOT_FOUND);

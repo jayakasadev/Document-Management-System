@@ -15,6 +15,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
 
 /**
@@ -29,13 +30,6 @@ public class UploadControllerTest {
     private StringBuilder path;
     private RestTemplate template;
     private Resource resource;
-
-    @Before
-    public void init(){
-        path = new StringBuilder("http://localhost:8080");
-        template = new RestTemplate();
-        template.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-    }
 
     @Test
     public void t1(){
@@ -60,28 +54,43 @@ public class UploadControllerTest {
 
     @Test
     public void t2(){
-        StringBuilder local = path.append("/details/filename/insertionsort.txt");
 
-        ObjectNode node = template.getForObject(local.toString(), ObjectNode.class);
+        path = new StringBuilder("http://localhost:8080");
+        template = new RestTemplate();
+        template.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
 
-        node.elements().forEachRemaining(System.out::println);
+        StringBuilder local = path.append("/details/filename/insertionsort.txt/");
 
-        assert node != null;
+        ResponseEntity<String> out = template.getForEntity(local.toString(), String.class);
+
+        System.out.println(out);
+
+        assert out != null;
     }
 
     @Test
     public void t3(){
+
+        path = new StringBuilder("http://localhost:8080");
+        template = new RestTemplate();
+        template.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+
         StringBuilder local = path.append("/details/1");
 
-        ObjectNode node = template.getForObject(local.toString(), ObjectNode.class);
+        ResponseEntity<String> out = template.getForEntity(local.toString(), String.class);
 
-        node.elements().forEachRemaining(System.out::println);
+        System.out.println(out);
 
-        assert node != null;
+        assert out != null;
     }
 
     @Test
     public void t4(){
+
+        path = new StringBuilder("http://localhost:8080");
+        template = new RestTemplate();
+        template.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+
         StringBuilder local = path.append("/all");
 
         ObjectNode node = template.getForObject(local.toString(), ObjectNode.class);
@@ -111,6 +120,11 @@ public class UploadControllerTest {
 
     @Test
     public void t5(){
+
+        path = new StringBuilder("http://localhost:8080");
+        template = new RestTemplate();
+        template.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+
         StringBuilder local = path.append("/recent");
 
         ObjectNode node = template.getForObject(local.toString(), ObjectNode.class);
