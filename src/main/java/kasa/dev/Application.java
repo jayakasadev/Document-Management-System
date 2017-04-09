@@ -10,7 +10,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  * Using @SpringBootApplication to enable auto configuration
  */
 @SpringBootApplication
-@EnableJpaRepositories
 public class Application {
     public static void main(String[] args){
 
