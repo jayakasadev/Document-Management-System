@@ -2,14 +2,20 @@ package kasa.dev.model;
 
 import lombok.Data;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 /**
  * Class represents the Object Model of an uploaded file
  */
-@Data
+@Data // lombok
+@Entity
 public class Upload {
+    @Id
+    @GeneratedValue
     private Long fileId;
 
     private String filename;
@@ -22,6 +28,7 @@ public class Upload {
 
     /**
      * Upload Constructor
+     * For use to create instances of Upload to be saved in the database
      *
      * @param filename
      * @param owner
@@ -37,6 +44,9 @@ public class Upload {
         this.dateUploaded = Timestamp.valueOf(LocalDateTime.now());
         this.lastAccessed = dateUploaded;
     }
+
+    // this default constructor is created for the sake of JPA, will not be used directly
+    protected Upload(){}
 
     public void updateLastAccessed(){
         this.lastAccessed = Timestamp.valueOf(LocalDateTime.now());
