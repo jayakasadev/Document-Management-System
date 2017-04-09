@@ -5,8 +5,11 @@ import kasa.dev.model.UploadRepository;
 import kasa.dev.service.storage.StorageService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.InputStreamSource;
 import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.Resources;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,9 +54,9 @@ public class UploadController {
      * @return String greeting
      */
     @RequestMapping(method = GET, produces = "application/json")
-    public String greeting(){
+    public Resource<String> greeting(){
         log.info("greeting has been accessed");
-        return "Hello There! Welcome to the Upload Management System.\n\tBuilt By Jaya Kasa.";
+        return new Resource<>("Hello There! Welcome to the Upload Management System.\n\tBuilt By Jaya Kasa.");
     }
 
     /**
@@ -61,10 +64,10 @@ public class UploadController {
      *
      * @return Collection containing record of all uploads
      */
-    @RequestMapping(value = "/all", method = GET, produces = "application/json")
-    public Collection<Upload> findAll(){
+    @RequestMapping(value = "/all", method = GET)
+    public Resources<Upload> findAll(){
         log.info("findAll");
-        return repository.findAll();
+        return new Resources<>(repository.findAll());
     }
 
     /**
@@ -72,22 +75,27 @@ public class UploadController {
      *
      * @param owner
      * @param description
-     * @param filename
      * @param file
      * @return Upload object
      */
-    @RequestMapping(value = "/upload/{owner}/{description}", method = POST, produces = "application/json")
-    public Upload upload(@PathVariable(value = "owner") String owner,
-                         @PathVariable(value = "description") String description,
-                         @PathVariable(value = "filename") String filename,
+    @RequestMapping(value = "/upload/{owner}/{description}", method = POST)
+    public Resource<Upload> upload(@PathVariable("owner") String owner,
+                         @PathVariable("description") String description,
                          @RequestParam MultipartFile file){
-        String extension = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf('.'));
+
+        log.info("uploading file owned by " + owner +" description: " + description);
+
         // log.info("uploading file owned by " + owner +" description: " + description);
-        log.info("uploading " + file.getOriginalFilename() + " to uploads directory");
+        // log.info("uploading " + file.getOriginalFilename() + " to uploads directory");
+        String extension = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf('.'));
 
         service.store(file.getOriginalFilename(), file);
 
-        return repository.save(new Upload(file.getOriginalFilename(), owner, extension, description));
+        Upload out = repository.save(new Upload(file.getOriginalFilename(), owner, extension, description));
+
+        // log.info("EXISTS: " + repository.findByFilename(file.getOriginalFilename()).toString());
+
+        return new Resource<>(out);
     }
 
     /**
@@ -96,10 +104,11 @@ public class UploadController {
      * @param id
      * @return Upload object if it exists
      */
-    @RequestMapping(value = "/details/{id}", method = GET, produces = "application/json")
-    public Optional<Upload> findByID(@PathVariable(value = "id") long id){
+    @RequestMapping(value = "/details/{id}", method = GET)
+    public Resource<Upload> findByID(@PathVariable(value = "id") long id){
         log.info("findByID " + id);
-        return repository.findByFileId(id);
+        Upload out = repository.findByFileId(id);
+        return new Resource<>(out);
     }
 
     /**
@@ -108,10 +117,13 @@ public class UploadController {
      * @param filename
      * @return Upload object if it exists
      */
-    @RequestMapping(value = "/details/{filename:.*}", method = GET, produces = "application/json")
-    public Optional<Upload> findByFilename(@PathVariable(value = "filename") String filename){
+    @RequestMapping(value = "/details/filename/{filename:.*}", method = GET)
+    public Resource<Upload> findByFilename(@PathVariable(value = "filename") String filename){
         log.info("findByFilename " + filename);
-        return repository.findByFilename(filename);
+        // log.info(out.toString());
+        Upload out = repository.findByFilename(filename);
+        log.info(out.toString());
+        return new Resource<>(out);
     }
 
     /**
@@ -119,10 +131,10 @@ public class UploadController {
      *
      * @return Collection containing Upload objects
      */
-    @RequestMapping(value = "/lasthour", method = GET, produces = "application/json")
-    public Collection<Upload> uploadedLastHour(){
+    @RequestMapping(value = "/recent", method = GET)
+    public Resources<Upload> uploadedLastHour(){
         log.info("uploadedLastHour now: " + LocalDateTime.now() + " hour ago: " + LocalDateTime.now().minusHours(1));
-        return repository.findByDateUploadedAfter(Timestamp.valueOf(LocalDateTime.now().minusHours(1)));
+        return new Resources<>(repository.findByDateUploadedAfter(Timestamp.valueOf(LocalDateTime.now().minusHours(1))));
     }
 
     /**
@@ -131,10 +143,10 @@ public class UploadController {
      * @param id
      * @return InputStream if file exists
      */
-    @RequestMapping(value = "/stream/{id}", method = GET)
+    @RequestMapping(value = "/stream/id/{id}", method = GET)
     public Resource<?> streamByID(@PathVariable(value = "id") long id){
         log.info("streamByID " + id);
-        Upload out = repository.findByFileId(id).get();
+        Upload out = repository.findByFileId(id);
 
         if(out == null){
             return new Resource<>(HttpStatus.NOT_FOUND);
@@ -150,10 +162,10 @@ public class UploadController {
      * @param filename
      * @return InputStream if file exists
      */
-    @RequestMapping(value = "/stream/{filename:.*}", method = GET, produces = "application/json")
+    @RequestMapping(value = "/stream/filename/{filename:.*}", method = GET)
     public Resource<?> streamByFilename(@PathVariable(value = "filename") String filename){
         log.info("streamByFilename " + filename);
-        Upload out = repository.findByFilename(filename).get();
+        Upload out = repository.findByFilename(filename);
 
         if(out == null){
             return new Resource<>(HttpStatus.NOT_FOUND);
@@ -161,5 +173,21 @@ public class UploadController {
         InputStreamSource source = service.loadAsResource(out.getFilename());
 
         return new Resource<>(source);
+    }
+
+    /**
+     * This bean is necessary for the entire program to run.
+     * It creates the uploads directory where the files will be stored
+     * It also deletes any existing files in the directory on start. SO BE CAREFUL
+     *
+     * @param service
+     * @return
+     */
+    @Bean
+    CommandLineRunner init(StorageService service){
+        return (args -> {
+            service.deleteAll();
+            service.init();
+        });
     }
 }

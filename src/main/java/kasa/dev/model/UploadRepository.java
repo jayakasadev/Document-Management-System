@@ -20,7 +20,7 @@ public interface UploadRepository extends CrudRepository<Upload, Long> {
      * @param filename
      * @return Optional containing Upload if it exists
      */
-    Optional<Upload> findByFilename(String filename);
+    Upload findByFilename(String filename);
 
     /**
      * Method for finding files by filename
@@ -28,7 +28,7 @@ public interface UploadRepository extends CrudRepository<Upload, Long> {
      * @param id
      * @return Optional containing Upload if it exists
      */
-    Optional<Upload> findByFileId(Long id);
+    Upload findByFileId(Long id);
 
     /**
      * Method for searching for files based on upload date
