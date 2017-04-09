@@ -1,9 +1,13 @@
 package kasa.dev.controller;
 
-import kasa.dev.model.*;
-
+import kasa.dev.model.Upload;
+import kasa.dev.model.UploadRepository;
+import kasa.dev.service.storage.StorageService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.core.io.InputStreamSource;
+import org.springframework.hateoas.Resource;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,14 +32,17 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 public class UploadController {
     private final Log log = LogFactory.getLog(UploadController.class);
     private final UploadRepository repository;
+    private final StorageService service;
 
     /**
      * Required if I want the UploadRespository to be autowired.
      *
      * @param repository
+     * @param service
      */
-    public UploadController(UploadRepository repository){
+    public UploadController(UploadRepository repository, StorageService service){
         this.repository = repository;
+        this.service = service;
     }
 
     /**
@@ -78,7 +85,7 @@ public class UploadController {
         // log.info("uploading file owned by " + owner +" description: " + description);
         log.info("uploading " + file.getOriginalFilename() + " to uploads directory");
 
-        // TODO implement file storage
+        service.store(file.getOriginalFilename(), file);
 
         return repository.save(new Upload(file.getOriginalFilename(), owner, extension, description));
     }
@@ -118,7 +125,6 @@ public class UploadController {
         return repository.findByDateUploadedAfter(Timestamp.valueOf(LocalDateTime.now().minusHours(1)));
     }
 
-    // TODO fix the 2 methods below to return file streams
     /**
      * Method for getting file stream by fileid
      *
@@ -126,13 +132,16 @@ public class UploadController {
      * @return InputStream if file exists
      */
     @RequestMapping(value = "/stream/{id}", method = GET)
-    public Optional<Upload> streamByID(@PathVariable(value = "id") long id){
+    public Resource<?> streamByID(@PathVariable(value = "id") long id){
         log.info("streamByID " + id);
         Upload out = repository.findByFileId(id).get();
-        if(out != null){
-            out.getFilename();
+
+        if(out == null){
+            return new Resource<>(HttpStatus.NOT_FOUND);
         }
-        return null;
+        InputStreamSource source = service.loadAsResource(out.getFilename());
+
+        return new Resource<>(source);
     }
 
     /**
@@ -142,8 +151,15 @@ public class UploadController {
      * @return InputStream if file exists
      */
     @RequestMapping(value = "/stream/{filename:.*}", method = GET, produces = "application/json")
-    public Optional<Upload> streamByFilename(@PathVariable(value = "filename") String filename){
+    public Resource<?> streamByFilename(@PathVariable(value = "filename") String filename){
         log.info("streamByFilename " + filename);
-        return null;
+        Upload out = repository.findByFilename(filename).get();
+
+        if(out == null){
+            return new Resource<>(HttpStatus.NOT_FOUND);
+        }
+        InputStreamSource source = service.loadAsResource(out.getFilename());
+
+        return new Resource<>(source);
     }
 }
