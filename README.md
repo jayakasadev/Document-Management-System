@@ -30,4 +30,5 @@ Getting all files uploaded by a given owner
 
 ## Dependencies
 * Spring Boot 2.0.0 SNAPSHOT
-* Lombok
+* Lombok 
+**If you are using IntelliJ, you must enable annotations processing**
