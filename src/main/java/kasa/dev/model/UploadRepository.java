@@ -38,5 +38,18 @@ public interface UploadRepository extends CrudRepository<Upload, Long> {
      */
     Collection<Upload> findByDateUploadedAfter(Timestamp timestamp);
 
+    /**
+     * Method to get all uploads in a sincle collection.
+     *
+     * @return Collection containing uploads
+     */
     Collection<Upload> findAll();
+
+    /**
+     * Method to find all files by owner.
+     *
+     * @param owner
+     * @return Collection containing uploads
+     */
+    Collection<Upload> findByOwner(String owner);
 }

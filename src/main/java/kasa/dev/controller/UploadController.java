@@ -184,6 +184,18 @@ public class UploadController {
     }
 
     /**
+     * Method to find all files uploaded by a specific owner.
+     *
+     * @param owner
+     * @return Resources containing all uploads for given owner
+     */
+    @RequestMapping(value = "/owner/{owner}", method = GET)
+    public Resources<Upload> getByOwner(@PathVariable("owner") String owner){
+        log.info("getByOwner: " + owner);
+        return new Resources<>(repository.findByOwner(owner));
+    }
+
+    /**
      * This bean is necessary for the entire program to run.
      * It creates the uploads directory where the files will be stored
      * It also deletes any existing files in the directory on start. SO BE CAREFUL
