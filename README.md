@@ -9,13 +9,20 @@ The goal of this project was to create a rudimentary file management system for 
 Landing Page
 * GET **/all**                                
 Lists all files
-* POST **/upload/{owner}/{description}**      Method for posting file 
-* GET **/details/{id}**                       Getting file details by file id
-* GET **/details/filename/{filename}/**       Getting file details by filename
-* GET **/recent**                             Getting all files uploaded in the last hour
-* GET **/stream/{id}**                        Getting file stream by file id
-* GET **/stream/filename/{filename}/**        Getting file stream by filename
-* GET **/owner/{owner} **                     Getting all files uploaded by a given owner
+* POST **/upload/{owner}/{description}**      
+Method for posting file 
+* GET **/details/{id}**                       
+Getting file details by file id
+* GET **/details/filename/{filename}/**       
+Getting file details by filename
+* GET **/recent**                             
+Getting all files uploaded in the last hour
+* GET **/stream/{id}**                        
+Getting file stream by file id
+* GET **/stream/filename/{filename}/**        
+Getting file stream by filename
+* GET **/owner/{owner} **                     
+Getting all files uploaded by a given owner
 
 ## Scheduled Events
 * Email
