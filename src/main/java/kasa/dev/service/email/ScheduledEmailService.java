@@ -23,7 +23,6 @@ public class ScheduledEmailService implements EmailService{
     @Autowired
     public ScheduledEmailService(UploadRepository uploadRepository){
         log.info("initializing ScheduledEmailService");
-        this.mailSender = mailSender;
         this.uploadRepository = uploadRepository;
     }
 
@@ -33,8 +32,9 @@ public class ScheduledEmailService implements EmailService{
 
     // TODO @Scheduled(cron = "0 0 0/1 * * *") vs @Scheduled(cron = "0 0 */1 * * *")
     @Override
-    @Scheduled(cron = "0 0 */1 * * *")
-    // @Scheduled(initialDelay = 1000, fixedRate = 15000)
+    // @Scheduled(cron = "0 0/59 * * * *")
+    // cron works by the clock. Does not work on a rolling basis.
+    @Scheduled(initialDelay = 1000 * 60 * 60, fixedRate = 1000 * 60 * 60)
     public void sendEmail() {
         log.info("Sending Email");
 
