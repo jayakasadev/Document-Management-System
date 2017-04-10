@@ -3,6 +3,7 @@ package kasa.dev.controller;
 import kasa.dev.model.Upload;
 import kasa.dev.model.UploadRepository;
 import kasa.dev.service.storage.StorageService;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -10,7 +11,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.InputStreamSource;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.Resources;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Collection;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -65,7 +70,8 @@ public class UploadController {
     @RequestMapping(value = "/all", method = GET)
     public Resources<Upload> findAll(){
         log.info("findAll");
-        return new Resources<>(repository.findAll());
+        Collection<Upload> out = repository.findAll();
+        return new Resources<>(out);
     }
 
     /**
@@ -100,7 +106,7 @@ public class UploadController {
      * Method for searching for file information by fileid
      *
      * @param id
-     * @return Upload object if it exists
+     * @return Upload object, else HttpStatus.NotFound
      */
     @RequestMapping(value = "/details/{id}", method = GET)
     public Resource<?> findByID(@PathVariable(value = "id") long id){
@@ -110,6 +116,12 @@ public class UploadController {
         return new Resource<>(out);
     }
 
+    /**
+     * Method to get file details by filename
+     *
+     * @param filename
+     * @return Upload object, else HttpStatus.NotFound
+     */
     @RequestMapping(value = "/details/filename/{filename}/", method = GET)
     public Resource<?> findByFilename(@PathVariable(value = "filename") String filename){
         log.info("findByFilename: " + filename);
@@ -135,17 +147,19 @@ public class UploadController {
      * @param id
      * @return InputStream if file exists
      */
-    @RequestMapping(value = "/stream/id/{id}", method = GET)
-    public Resource<?> streamByID(@PathVariable(value = "id") long id){
+    @RequestMapping(value = "/stream/{id}", method = GET, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<org.springframework.core.io.Resource> streamByID(@PathVariable(value = "id") long id){
         log.info("streamByID " + id);
         Upload out = repository.findByFileId(id).get();
 
-        if(out == null){
-            return new Resource<>(HttpStatus.NOT_FOUND);
-        }
-        InputStreamSource source = service.loadAsResource(out.getFilename());
+        if(out == null) return (ResponseEntity<org.springframework.core.io.Resource>) ResponseEntity.notFound();
 
-        return new Resource<>(source);
+        org.springframework.core.io.Resource file = service.loadAsResource(out.getFilename());
+
+        return ResponseEntity.
+                ok().
+                header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\""+out.getFilename()+"\"").
+                body(file);
     }
 
     /**
@@ -154,17 +168,19 @@ public class UploadController {
      * @param filename
      * @return InputStream if file exists
      */
-    @RequestMapping(value = "/stream/filename/{filename:.*}", method = GET)
-    public Resource<?> streamByFilename(@PathVariable(value = "filename") String filename){
+    @RequestMapping(value = "/stream/filename/{filename}/", method = GET, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<org.springframework.core.io.Resource> streamByFilename(@PathVariable(value = "filename") String filename){
         log.info("streamByFilename " + filename);
         Upload out = repository.findByFilename(filename).get();
 
-        if(out == null){
-            return new Resource<>(HttpStatus.NOT_FOUND);
-        }
-        InputStreamSource source = service.loadAsResource(out.getFilename());
+        if(out == null) return (ResponseEntity<org.springframework.core.io.Resource>) ResponseEntity.notFound();
 
-        return new Resource<>(source);
+        org.springframework.core.io.Resource file = service.loadAsResource(out.getFilename());
+
+        return ResponseEntity.
+                ok().
+                header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\""+out.getFilename()+"\"").
+                body(file);
     }
 
     /**
@@ -183,3 +199,4 @@ public class UploadController {
         });
     }
 }
+

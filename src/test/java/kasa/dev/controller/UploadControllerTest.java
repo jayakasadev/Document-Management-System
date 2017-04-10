@@ -1,7 +1,8 @@
-package kasa.dev.model;
+package kasa.dev.controller;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import kasa.dev.model.Upload;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -14,6 +15,8 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+
+import java.io.*;
 
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
@@ -93,27 +96,9 @@ public class UploadControllerTest {
 
         StringBuilder local = path.append("/all");
 
-        ObjectNode node = template.getForObject(local.toString(), ObjectNode.class);
+        ResponseEntity<String> node = template.getForEntity(local.toString(), String.class);
 
-        node.elements().forEachRemaining(x -> {
-            if(x instanceof ObjectNode){
-                System.out.println("Outer Objectnode");
-                x.elements().forEachRemaining(System.out::println);
-            }
-            else if (x instanceof ArrayNode){
-                System.out.println("Outer Arraynode");
-                ((ArrayNode) x).forEach(y -> {
-                    y.elements().forEachRemaining(z -> {
-                        if(z instanceof ObjectNode){
-                            z.elements().forEachRemaining(System.out::println);
-                        }
-                        else{
-                            ((ArrayNode) z).forEach(System.out::println);
-                        }
-                    });
-                });
-            }
-        });
+        System.out.println(node);
 
         assert node != null;
     }
@@ -127,28 +112,63 @@ public class UploadControllerTest {
 
         StringBuilder local = path.append("/recent");
 
-        ObjectNode node = template.getForObject(local.toString(), ObjectNode.class);
+        ResponseEntity<String> node = template.getForEntity(local.toString(), String.class);
 
-        node.elements().forEachRemaining(x -> {
-            if(x instanceof ObjectNode){
-                System.out.println("Outer Objectnode");
-                x.elements().forEachRemaining(System.out::println);
-            }
-            else if (x instanceof ArrayNode){
-                System.out.println("Outer Arraynode");
-                ((ArrayNode) x).forEach(y -> {
-                    y.elements().forEachRemaining(z -> {
-                        if(z instanceof ObjectNode){
-                            z.elements().forEachRemaining(System.out::println);
-                        }
-                        else{
-                            ((ArrayNode) z).forEach(System.out::println);
-                        }
-                    });
-                });
-            }
-        });
+        System.out.println(node);
 
         assert node != null;
     }
+
+    @Test
+    public void t6(){
+        path = new StringBuilder("http://localhost:8080");
+        template = new RestTemplate();
+        template.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+
+        StringBuilder local = path.append("/stream/1");
+
+        ResponseEntity<Resource> node = template.getForEntity(local.toString(), Resource.class);
+
+        System.out.println(node);
+
+        try {
+            BufferedReader stream = new BufferedReader(new InputStreamReader(node.getBody().getInputStream()));
+
+            String temp = "";
+            while((temp = stream.readLine()) != null){
+                System.out.println(temp);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        assert node != null;
+    }
+
+    @Test
+    public void t7(){
+        path = new StringBuilder("http://localhost:8080");
+        template = new RestTemplate();
+        template.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+
+        StringBuilder local = path.append("/stream/filename/insertionsort.txt/");
+
+        ResponseEntity<Resource> node = template.getForEntity(local.toString(), Resource.class);
+
+        System.out.println(node);
+
+        try {
+            BufferedReader stream = new BufferedReader(new InputStreamReader(node.getBody().getInputStream()));
+
+            String temp = "";
+            while((temp = stream.readLine()) != null){
+                System.out.println(temp);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        assert node != null;
+    }
+
 }
