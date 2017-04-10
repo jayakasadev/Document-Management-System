@@ -5,8 +5,10 @@
 The goal of this project was to create a rudimentary file management system for easy deployment and modification. Currently, all uploads are saved to a single folder and versioning is not supported. However, with a few simple modifications to the model package, that can be easily remedied. 
 
 ## Endpoints
-* GET **/**                                   Landing Page
-* GET **/all**                                Lists all files
+* GET **/**                                   
+Landing Page
+* GET **/all**                                
+Lists all files
 * POST **/upload/{owner}/{description}**      Method for posting file 
 * GET **/details/{id}**                       Getting file details by file id
 * GET **/details/filename/{filename}/**       Getting file details by filename
