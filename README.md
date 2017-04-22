@@ -1,4 +1,4 @@
-# Upload Manager: Standalone Web Service to manage file uploads
+# Document Management System: Standalone Web Service to manage file uploads
 
 ## Overview
 ---
